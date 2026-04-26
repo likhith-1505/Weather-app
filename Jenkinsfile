@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   stages {
-    stage('Clone Repo') {
+    stage('Checkout') {
       steps {
         checkout scm
       }
@@ -16,21 +16,33 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t weather-devops-app .'
+        sh 'docker build -t weather-devops-app:latest .'
       }
     }
 
-    stage('Show docker images') {
+    stage('Show Docker Images') {
       steps {
-        sh 'docker images'
+        sh 'docker images | grep weather-devops-app || true'
       }
     }
 
-    stage('Run container') {
+    stage('Stop Old Container') {
       steps {
         sh 'docker stop weather-devops-container || true'
         sh 'docker rm weather-devops-container || true'
-        sh 'docker run -d --name weather-devops-container -p 3000:3000 weather-devops-app || true'
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh 'kubectl apply -f k8s/'
+      }
+    }
+
+    stage('Verify Deployment') {
+      steps {
+        sh 'kubectl get pods'
+        sh 'kubectl get services'
       }
     }
   }
