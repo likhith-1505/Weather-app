@@ -13,6 +13,16 @@ app.get('/', (req, res) => {
 app.get('/api/weather', (req, res) => {
   const city = (req.query.city || 'Bangalore').toString().trim() || 'Bangalore';
 
+  const conditions = ['Sunny', 'Cloudy', 'Rainy', 'Windy', 'Partly Cloudy'];
+  const temperatures = [28, 27, 29, 30, 28];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+  const forecast = days.map((day, idx) => ({
+    day,
+    temp: `${temperatures[idx]}°C`,
+    condition: conditions[idx]
+  }));
+
   res.json({
     city,
     country: 'IN',
@@ -23,6 +33,7 @@ app.get('/api/weather', (req, res) => {
     windSpeed: '12 km/h',
     pressure: '1012 hPa',
     visibility: '10 km',
+    forecast,
     updatedAt: new Date().toISOString()
   });
 });
