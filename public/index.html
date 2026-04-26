@@ -1,1036 +1,1560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WeatherHub - Premium Weather Dashboard</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --gradient-sunny: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-      --gradient-rainy: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-cloudy: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-      --gradient-windy: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-      --gradient-night: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      
-      --glass-light: rgba(255, 255, 255, 0.95);
-      --glass-dark: rgba(30, 41, 59, 0.95);
-      --blur: blur(10px);
-      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.07);
-      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.15);
-      --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.25);
-      --shadow-glow: 0 0 30px rgba(255, 215, 0, 0.3);
-    }
-
-    html.light-mode {
-      color-scheme: light;
-    }
-
-    html.dark-mode {
-      color-scheme: dark;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Helvetica", sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-      transition: var(--transition);
-    }
-
-    body.light-mode {
-      background: linear-gradient(-45deg, #ffd89b, #19547b, #ffb88c, #a8edea);
-      background-size: 400% 400%;
-      color: #1e293b;
-      animation: gradientShift 15s ease infinite;
-    }
-
-    body.dark-mode {
-      background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #e94560);
-      background-size: 400% 400%;
-      color: #f1f5f9;
-      animation: gradientShift 15s ease infinite;
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    header {
-      backdrop-filter: var(--blur);
-      padding: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .light-mode header {
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .dark-mode header {
-      background: rgba(30, 41, 59, 0.8);
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-      flex: 1;
-    }
-
-    .brand {
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: -1px;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .search-group {
-      display: flex;
-      gap: 0.75rem;
-      flex: 1;
-      max-width: 600px;
-    }
-
-    .search-input {
-      flex: 1;
-      padding: 0.75rem 1.25rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      font-size: 1rem;
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      color: inherit;
-      transition: var(--transition);
-    }
-
-    .search-input::placeholder {
-      opacity: 0.6;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-    }
-
-    button {
-      padding: 0.75rem 1.25rem;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.15);
-      color: inherit;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .theme-toggle {
-      font-size: 1.5rem;
-      padding: 0.5rem;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .hero-section {
-      grid-column: 1 / -1;
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 24px;
-      padding: 3rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .hero-section::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
-      animation: float 20s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      50% { transform: translate(30px, 30px) rotate(180deg); }
-    }
-
-    .hero-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-left {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .location-title {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.5px;
-    }
-
-    .location-subtitle {
-      opacity: 0.7;
-      font-size: 1.1rem;
-    }
-
-    .temperature-display {
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-      margin: 1rem 0;
-    }
-
-    .temperature {
-      font-size: 5.5rem;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -2px;
-    }
-
-    .condition-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 0.75rem 1.25rem;
-      border-radius: 50px;
-      backdrop-filter: var(--blur);
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .condition-icon {
-      font-size: 2rem;
-      animation: pulse 3s ease-in-out infinite;
-    }
-
-    .sun-anim {
-      animation: sunGlow 3s ease-in-out infinite;
-    }
-
-    .rain-anim {
-      animation: rainFall 2s ease-in-out infinite;
-    }
-
-    .clouds-anim {
-      animation: cloudDrift 4s ease-in-out infinite;
-    }
-
-    .wind-anim {
-      animation: windBlow 1.5s ease-in-out infinite;
-    }
-
-    @keyframes sunGlow {
-      0%, 100% { 
-        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        transform: scale(1);
-      }
-      50% { 
-        text-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
-        transform: scale(1.05);
-      }
-    }
-
-    @keyframes rainFall {
-      0%, 100% { transform: translateY(-10px); opacity: 1; }
-      50% { transform: translateY(10px); opacity: 0.7; }
-    }
-
-    @keyframes cloudDrift {
-      0%, 100% { transform: translateX(-20px); }
-      50% { transform: translateX(20px); }
-    }
-
-    @keyframes windBlow {
-      0%, 100% { transform: rotateZ(-15deg); }
-      50% { transform: rotateZ(15deg); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .hero-right {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 300px;
-    }
-
-    .large-icon {
-      font-size: 10rem;
-      animation: float 6s ease-in-out infinite;
-      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
-    }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-
-    .detail-card {
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 1.5rem;
-      border-radius: 16px;
-      text-align: center;
-      transition: var(--transition);
-      cursor: pointer;
-    }
-
-    .detail-card:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .detail-label {
-      font-size: 0.9rem;
-      opacity: 0.7;
-      margin-bottom: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .detail-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-
-    .forecast-section {
-      grid-column: 1 / -1;
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      letter-spacing: -0.5px;
-    }
-
-    .forecast-carousel {
-      display: flex;
-      gap: 1rem;
-      overflow-x: auto;
-      padding-bottom: 1rem;
-      scroll-behavior: smooth;
-    }
-
-    .forecast-carousel::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .light-mode .forecast-carousel::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.05);
-      border-radius: 10px;
-    }
-
-    .dark-mode .forecast-carousel::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-    }
-
-    .forecast-carousel::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
-    }
-
-    .forecast-card {
-      flex-shrink: 0;
-      width: 140px;
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      transition: var(--transition);
-      cursor: pointer;
-    }
-
-    .forecast-card:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-8px) scale(1.05);
-      box-shadow: var(--shadow-md);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    .forecast-card.active {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.6);
-      ring: 2px solid rgba(255, 215, 0, 0.5);
-    }
-
-    .forecast-day {
-      font-size: 0.9rem;
-      font-weight: 700;
-      opacity: 0.9;
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-    }
-
-    .forecast-icon {
-      font-size: 2.5rem;
-      margin: 0.75rem 0;
-    }
-
-    .forecast-temp {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .forecast-condition {
-      font-size: 0.85rem;
-      opacity: 0.7;
-    }
-
-    .highlights-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .highlight-card {
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 2rem;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .highlight-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.5s ease;
-      z-index: 0;
-    }
-
-    .highlight-card:hover::before {
-      left: 100%;
-    }
-
-    .highlight-card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-md);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    .highlight-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .highlight-title {
-      font-size: 0.95rem;
-      opacity: 0.8;
-      margin-bottom: 1rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .highlight-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .highlight-subtitle {
-      font-size: 0.9rem;
-      opacity: 0.6;
-      margin-top: 0.75rem;
-    }
-
-    .search-history {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-top: 1.5rem;
-    }
-
-    .history-chip {
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 0.6rem 1.2rem;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .history-chip:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-
-    .status-message {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      backdrop-filter: var(--blur);
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      z-index: 999;
-      animation: slideUp 0.3s ease;
-      max-width: 90%;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-
-    .status-message.error {
-      border-color: rgba(239, 68, 68, 0.5);
-      background: rgba(239, 68, 68, 0.15);
-      color: #fecaca;
-    }
-
-    .status-message.success {
-      border-color: rgba(16, 185, 129, 0.5);
-      background: rgba(16, 185, 129, 0.15);
-      color: #a7f3d0;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 30px;
-      height: 30px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top-color: currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 1024px) {
-      .hero-content {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-right {
-        height: 250px;
-      }
-
-      .large-icon {
-        font-size: 8rem;
-      }
-
-      main {
-        padding: 1.5rem;
-      }
-
-      .hero-section {
-        padding: 2rem;
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-      }
-
-      .header-content {
-        flex-direction: column;
-        width: 100%;
-        max-width: none;
-      }
-
-      .search-group {
-        width: 100%;
-      }
-
-      .temperature {
-        font-size: 4rem;
-      }
-
-      .location-title {
-        font-size: 2rem;
-      }
-
-      .large-icon {
-        font-size: 6rem;
-      }
-
-      .details-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .hero-section {
-        padding: 1.5rem;
-      }
-
-      .hero-left {
-        gap: 1rem;
-      }
-
-      .hero-right {
-        height: 200px;
-      }
-
-      .forecast-card {
-        width: 120px;
-        padding: 1rem;
-      }
-
-      .highlights-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .section-title {
-        font-size: 1.25rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .temperature {
-        font-size: 3rem;
-      }
-
-      .location-title {
-        font-size: 1.5rem;
-      }
-
-      .large-icon {
-        font-size: 5rem;
-      }
-
-      .details-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      button {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-      }
-
-      .detail-card {
-        padding: 1rem;
-      }
-
-      .forecast-card {
-        width: 100px;
-        padding: 0.75rem;
-        font-size: 0.9rem;
-      }
-
-      .forecast-day {
-        font-size: 0.75rem;
-      }
-
-      .forecast-icon {
-        font-size: 2rem;
-      }
-
-      .forecast-temp {
-        font-size: 1.1rem;
-      }
-
-      .condition-badge {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-      }
-
-      .condition-icon {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherHub - Premium Multi-Tab Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            
+            --bg-light: #f8fafc;
+            --bg-dark: #0f172a;
+            --card-light: rgba(255, 255, 255, 0.7);
+            --card-dark: rgba(15, 23, 42, 0.6);
+            --text-light: #1e293b;
+            --text-dark: #f1f5f9;
+            --border-light: rgba(30, 41, 59, 0.1);
+            --border-dark: rgba(241, 245, 249, 0.1);
+            
+            --glass-blur: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        html.dark-mode {
+            --bg-light: #0f172a;
+            --bg-dark: #020617;
+            --card-light: rgba(15, 23, 42, 0.6);
+            --card-dark: rgba(2, 6, 23, 0.8);
+            --text-light: #f1f5f9;
+            --text-dark: #1e293b;
+            --border-light: rgba(241, 245, 249, 0.1);
+            --border-dark: rgba(30, 41, 59, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        html.dark-mode body {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-bg);
+            z-index: -1;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); opacity: 0.8; }
+            50% { filter: hue-rotate(30deg); opacity: 0.95; }
+        }
+
+        /* Container */
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px;
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-brand h1 {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            border-radius: 0.75rem;
+            transition: var(--transition);
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-tab:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-tab-icon {
+            font-size: 1.2rem;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .sidebar-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .sidebar-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border-bottom: 1px solid var(--border-light);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .search-btn, .refresh-btn, .location-btn, .theme-btn {
+            padding: 0.75rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .search-btn:hover, .refresh-btn:hover, .location-btn:hover, .theme-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Tabs Content */
+        .tabs-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Overview Tab */
+        .hero-card {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .city-location {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .city-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .weather-icon-large {
+            font-size: 5rem;
+            margin: 1rem 0;
+            animation: sunGlow 3s ease-in-out infinite;
+        }
+
+        .weather-icon-large.rain-animation {
+            animation: rainFall 2s ease-in-out infinite;
+        }
+
+        .weather-icon-large.cloud-animation {
+            animation: cloudDrift 4s ease-in-out infinite;
+        }
+
+        .weather-icon-large.wind-animation {
+            animation: windBlow 2s ease-in-out infinite;
+        }
+
+        @keyframes sunGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(251, 146, 60, 0.5); transform: scale(1); }
+            50% { text-shadow: 0 0 40px rgba(251, 146, 60, 0.8); transform: scale(1.05); }
+        }
+
+        @keyframes rainFall {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(5px) rotate(-2deg); }
+        }
+
+        @keyframes cloudDrift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+
+        @keyframes windBlow {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .temperature-display {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .condition-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            border: 1px solid var(--primary);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .detail-item {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Forecast Tab */
+        .carousel {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+
+        .forecast-card {
+            flex: 0 0 150px;
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .forecast-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
+        }
+
+        .forecast-day {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .forecast-icon {
+            font-size: 2.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .forecast-temp {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .forecast-condition {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* Hourly Forecast */
+        .hourly-section {
+            margin-bottom: 2rem;
+        }
+
+        .hourly-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .hourly-container {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+        }
+
+        .hourly-item {
+            flex: 0 0 80px;
+            text-align: center;
+            padding: 0.75rem;
+        }
+
+        .hourly-time {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .hourly-icon {
+            font-size: 1.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .hourly-temp {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Temperature Bars */
+        .temp-chart {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .temp-chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .temp-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .temp-bar-label {
+            width: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .temp-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .temp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .temp-bar-value {
+            width: 40px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Weather Map Tab */
+        .map-container {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            height: 500px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .map-canvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-marker {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+            animation: markerPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes markerPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.9), 0 0 50px rgba(99, 102, 241, 0.5); }
+        }
+
+        .map-layers {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .layers-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .layer-toggle:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .layer-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* Analytics Tab */
+        .highlights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .highlight-card {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .highlight-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .highlight-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .highlight-info {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        /* Settings Tab */
+        .settings-section {
+            background: var(--card-light);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-light);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .setting-name {
+            font-weight: 600;
+        }
+
+        .setting-description {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+            border: 1px solid var(--border-light);
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .toggle-slider {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: var(--transition);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: 24px;
+        }
+
+        .setting-input {
+            padding: 0.75rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            max-width: 300px;
+        }
+
+        .setting-select {
+            padding: 0.75rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            max-width: 300px;
+        }
+
+        /* Search History */
+        .search-history {
+            margin: 1rem 0;
+        }
+
+        .history-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .history-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .history-chip {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .history-chip:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-xl);
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 2.7s;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Status Message */
+        .status-message {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 180px;
+            }
+
+            .temperature-display {
+                font-size: 3rem;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 1rem 0;
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+            }
+
+            .sidebar-brand {
+                margin-bottom: 0;
+                padding: 0 0.5rem;
+            }
+
+            .sidebar-brand h1 {
+                font-size: 1rem;
+            }
+
+            .nav-tabs {
+                flex-direction: row;
+                gap: 0.25rem;
+                padding: 0 0.5rem;
+                overflow-x: auto;
+            }
+
+            .nav-tab {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
+
+            .nav-tab-icon {
+                display: none;
+            }
+
+            .sidebar-footer {
+                padding: 0.5rem;
+                gap: 0.25rem;
+            }
+
+            .sidebar-btn {
+                font-size: 0.7rem;
+                padding: 0.5rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .search-container {
+                max-width: none;
+            }
+
+            .search-input {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .search-btn, .refresh-btn, .location-btn, .theme-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .temperature-display {
+                font-size: 2.5rem;
+            }
+
+            .hero-card {
+                padding: 1.5rem;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .detail-item {
+                padding: 0.75rem;
+            }
+
+            .highlights-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar-brand h1 {
+                font-size: 0.9rem;
+            }
+
+            .nav-tabs {
+                gap: 0;
+            }
+
+            .nav-tab {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .highlights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .forecast-card {
+                flex: 0 0 120px;
+            }
+
+            .tabs-container {
+                padding: 1rem;
+            }
+
+            .hero-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .temperature-display {
+                font-size: 2rem;
+            }
+
+            .weather-icon-large {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
 </head>
-<body class="light-mode">
-  <header>
-    <div class="header-content">
-      <h1 class="brand">☀️ WeatherHub</h1>
-      <div class="search-group">
-        <input
-          id="searchInput"
-          type="text"
-          class="search-input"
-          placeholder="Search city..."
-          aria-label="Search city"
-        />
-        <button id="searchBtn" class="btn-primary" aria-label="Search">🔍</button>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button id="refreshBtn" aria-label="Refresh">🔄</button>
-      <button id="locationBtn" aria-label="Current location">📍</button>
-      <button id="themeBtn" class="theme-toggle" aria-label="Toggle theme">🌙</button>
-    </div>
-  </header>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <h1>⛅ WeatherHub</h1>
+            </div>
+            
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="overview">
+                    <span class="nav-tab-icon">🏠</span>
+                    <span>Overview</span>
+                </button>
+                <button class="nav-tab" data-tab="forecast">
+                    <span class="nav-tab-icon">📅</span>
+                    <span>Forecast</span>
+                </button>
+                <button class="nav-tab" data-tab="map">
+                    <span class="nav-tab-icon">🗺️</span>
+                    <span>Weather Map</span>
+                </button>
+                <button class="nav-tab" data-tab="analytics">
+                    <span class="nav-tab-icon">📊</span>
+                    <span>Analytics</span>
+                </button>
+                <button class="nav-tab" data-tab="settings">
+                    <span class="nav-tab-icon">⚙️</span>
+                    <span>Settings</span>
+                </button>
+            </div>
 
-  <main>
-    <section class="hero-section">
-      <div class="hero-content">
-        <div class="hero-left">
-          <div>
-            <h2 class="location-title" id="cityName">Bangalore</h2>
-            <p class="location-subtitle" id="updateTime">Last updated: --</p>
-          </div>
-
-          <div class="temperature-display">
-            <div class="temperature" id="tempDisplay">28°C</div>
-            <div class="condition-badge">
-              <span class="condition-icon" id="conditionIcon">☀️</span>
-              <span id="conditionText">Sunny</span>
+            <div class="sidebar-footer">
+                <button class="sidebar-btn refresh-btn" data-action="refresh">🔄 Refresh</button>
+                <button class="sidebar-btn location-btn" data-action="location">📍 Location</button>
             </div>
-          </div>
-
-          <div class="details-grid">
-            <div class="detail-card">
-              <div class="detail-label">Feels Like</div>
-              <div class="detail-value" id="feelsLike">30°C</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Humidity</div>
-              <div class="detail-value" id="humidity">62%</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Wind</div>
-              <div class="detail-value" id="windSpeed">12 km/h</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Pressure</div>
-              <div class="detail-value" id="pressure">1012 hPa</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-label">Visibility</div>
-              <div class="detail-value" id="visibility">10 km</div>
-            </div>
-          </div>
         </div>
 
-        <div class="hero-right">
-          <div class="large-icon" id="largeIcon">☀️</div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search city...">
+                    <button class="search-btn" id="search-btn">Search</button>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-btn" id="theme-btn">🌙</button>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div id="status-message" class="status-message"></div>
+
+            <!-- Tabs Content -->
+            <div class="tabs-container">
+                <!-- Overview Tab -->
+                <div id="overview" class="tab-panel active">
+                    <div class="hero-card">
+                        <div class="city-location" id="city-location">Loading...</div>
+                        <div class="city-name" id="city-name">Bangalore</div>
+                        <div class="weather-icon-large" id="weather-icon">☀️</div>
+                        <div class="temperature-display" id="temperature">28°C</div>
+                        <div class="condition-badge"><span id="weather-condition">Sunny</span></div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Feels Like</div>
+                            <div class="detail-value" id="feels-like">30°C</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value" id="humidity">62%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Wind Speed</div>
+                            <div class="detail-value" id="wind-speed">12 km/h</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Pressure</div>
+                            <div class="detail-value" id="pressure">1012 hPa</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Visibility</div>
+                            <div class="detail-value" id="visibility">10 km</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Updated</div>
+                            <div class="detail-value" id="updated-time" style="font-size: 0.9rem;">Just now</div>
+                        </div>
+                    </div>
+
+                    <div class="search-history">
+                        <div class="history-title">Recent Searches</div>
+                        <div class="history-chips" id="history-chips"></div>
+                    </div>
+                </div>
+
+                <!-- Forecast Tab -->
+                <div id="forecast" class="tab-panel">
+                    <div class="card">
+                        <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">5-Day Forecast</div>
+                        <div class="carousel" id="forecast-carousel"></div>
+                    </div>
+
+                    <div class="hourly-section">
+                        <div class="hourly-title">Hourly Forecast</div>
+                        <div class="hourly-container" id="hourly-container"></div>
+                    </div>
+
+                    <div class="temp-chart">
+                        <div class="temp-chart-title">Temperature Trend</div>
+                        <div id="temp-bars"></div>
+                    </div>
+                </div>
+
+                <!-- Weather Map Tab -->
+                <div id="map" class="tab-panel">
+                    <div class="map-container">
+                        <div class="map-canvas">
+                            <div class="map-marker">📍</div>
+                        </div>
+                    </div>
+                    <div class="map-layers">
+                        <div class="layers-title">Layer Controls</div>
+                        <div class="layer-toggle">
+                            <input type="checkbox" class="layer-checkbox" id="layer-temp" checked>
+                            <label for="layer-temp">Temperature</label>
+                        </div>
+                        <div class="layer-toggle">
+                            <input type="checkbox" class="layer-checkbox" id="layer-wind">
+                            <label for="layer-wind">Wind Speed</label>
+                        </div>
+                        <div class="layer-toggle">
+                            <input type="checkbox" class="layer-checkbox" id="layer-rain">
+                            <label for="layer-rain">Rainfall</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics" class="tab-panel">
+                    <div class="highlights-grid">
+                        <div class="highlight-card">
+                            <div class="highlight-icon">💧</div>
+                            <div class="highlight-label">Humidity</div>
+                            <div class="highlight-value" id="analytics-humidity">62%</div>
+                            <div class="highlight-info">Moderate humidity level</div>
+                        </div>
+                        <div class="highlight-card">
+                            <div class="highlight-icon">🌪️</div>
+                            <div class="highlight-label">Wind</div>
+                            <div class="highlight-value" id="analytics-wind">12 km/h</div>
+                            <div class="highlight-info">Light breeze</div>
+                        </div>
+                        <div class="highlight-card">
+                            <div class="highlight-icon">🔽</div>
+                            <div class="highlight-label">Pressure</div>
+                            <div class="highlight-value" id="analytics-pressure">1012 hPa</div>
+                            <div class="highlight-info">Normal pressure</div>
+                        </div>
+                        <div class="highlight-card">
+                            <div class="highlight-icon">👁️</div>
+                            <div class="highlight-label">Visibility</div>
+                            <div class="highlight-value" id="analytics-visibility">10 km</div>
+                            <div class="highlight-info">Good visibility</div>
+                        </div>
+                        <div class="highlight-card">
+                            <div class="highlight-icon">🌫️</div>
+                            <div class="highlight-label">Air Quality</div>
+                            <div class="highlight-value">Good</div>
+                            <div class="highlight-info">PM2.5: 35 µg/m³</div>
+                        </div>
+                        <div class="highlight-card">
+                            <div class="highlight-icon">🌅</div>
+                            <div class="highlight-label">Sunrise/Sunset</div>
+                            <div class="highlight-value">6:30 / 18:45</div>
+                            <div class="highlight-info">11h 15m daylight</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-panel">
+                    <div class="settings-section">
+                        <div class="settings-title">Display</div>
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <span class="setting-name">Dark Mode</span>
+                                <span class="setting-description">Use dark theme for better visibility at night</span>
+                            </div>
+                            <div class="toggle-switch" id="dark-mode-toggle">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <span class="setting-name">Temperature Unit</span>
+                                <span class="setting-description">Display temperature in Celsius or Fahrenheit</span>
+                            </div>
+                            <select class="setting-select" id="temp-unit">
+                                <option value="celsius">Celsius (°C)</option>
+                                <option value="fahrenheit">Fahrenheit (°F)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-title">Preferences</div>
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <span class="setting-name">Notifications</span>
+                                <span class="setting-description">Get alerts for weather changes</span>
+                            </div>
+                            <div class="toggle-switch" id="notifications-toggle">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <span class="setting-name">Default City</span>
+                                <span class="setting-description">Your preferred city on startup</span>
+                            </div>
+                            <input type="text" class="setting-input" id="default-city" placeholder="Enter city name">
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-title">Data</div>
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <span class="setting-name">Search History</span>
+                                <span class="setting-description">Stores your recent searches locally</span>
+                            </div>
+                            <button class="search-btn" onclick="clearHistory()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </section>
+    </div>
 
-    <section class="forecast-section">
-      <h3 class="section-title">5-Day Forecast</h3>
-      <div class="forecast-carousel" id="forecastCarousel">
-        <!-- Populated by JavaScript -->
-      </div>
-    </section>
+    <script>
+        // State
+        let currentCity = 'Bangalore';
+        let currentWeatherData = null;
+        let searchHistory = [];
+        let settings = {
+            darkMode: false,
+            unit: 'celsius',
+            notifications: false,
+            defaultCity: 'Bangalore'
+        };
 
-    <section class="forecast-section">
-      <h3 class="section-title">Recent Searches</h3>
-      <div class="search-history" id="historyContainer">
-        <!-- Populated by JavaScript -->
-      </div>
-    </section>
+        // DOM Elements
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const themeBtn = document.getElementById('theme-btn');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        const statusMessage = document.getElementById('status-message');
 
-    <div id="statusContainer"></div>
-  </main>
+        // Event Listeners
+        searchBtn.addEventListener('click', () => searchCity());
+        searchInput.addEventListener('keypress', (e) => e.key === 'Enter' && searchCity());
+        themeBtn.addEventListener('click', toggleTheme);
+        document.querySelector('[data-action="refresh"]').addEventListener('click', refreshWeather);
+        document.querySelector('[data-action="location"]').addEventListener('click', getCurrentLocation);
+        navTabs.forEach(tab => tab.addEventListener('click', switchTab));
 
-  <script>
-    // State
-    let currentCity = 'Bangalore';
-    let searchHistory = JSON.parse(localStorage.getItem('weatherHistory')) || [];
-    let isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-    // DOM Elements
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const locationBtn = document.getElementById('locationBtn');
-    const themeBtn = document.getElementById('themeBtn');
-    const statusContainer = document.getElementById('statusContainer');
-
-    // Weather Display Elements
-    const cityName = document.getElementById('cityName');
-    const updateTime = document.getElementById('updateTime');
-    const tempDisplay = document.getElementById('tempDisplay');
-    const conditionIcon = document.getElementById('conditionIcon');
-    const conditionText = document.getElementById('conditionText');
-    const feelsLike = document.getElementById('feelsLike');
-    const humidity = document.getElementById('humidity');
-    const windSpeed = document.getElementById('windSpeed');
-    const pressure = document.getElementById('pressure');
-    const visibility = document.getElementById('visibility');
-    const largeIcon = document.getElementById('largeIcon');
-    const forecastCarousel = document.getElementById('forecastCarousel');
-    const historyContainer = document.getElementById('historyContainer');
-
-    // Initialize
-    function init() {
-      applyTheme();
-      renderHistory();
-      fetchWeather(currentCity);
-    }
-
-    // Theme Management
-    function applyTheme() {
-      const html = document.documentElement;
-      const body = document.body;
-      
-      if (isDarkMode) {
-        html.classList.add('dark-mode');
-        html.classList.remove('light-mode');
-        body.classList.add('dark-mode');
-        body.classList.remove('light-mode');
-        themeBtn.textContent = '☀️';
-      } else {
-        html.classList.add('light-mode');
-        html.classList.remove('dark-mode');
-        body.classList.add('light-mode');
-        body.classList.remove('dark-mode');
-        themeBtn.textContent = '🌙';
-      }
-    }
-
-    themeBtn.addEventListener('click', () => {
-      isDarkMode = !isDarkMode;
-      localStorage.setItem('darkMode', isDarkMode);
-      applyTheme();
-    });
-
-    // Weather Icon with Animation Class
-    function getWeatherIcon(condition) {
-      const c = String(condition || '').toLowerCase();
-      if (c.includes('rain')) return { emoji: '🌧️', animation: 'rain-anim' };
-      if (c.includes('cloud')) return { emoji: '☁️', animation: 'clouds-anim' };
-      if (c.includes('storm')) return { emoji: '⛈️', animation: 'rain-anim' };
-      if (c.includes('snow')) return { emoji: '❄️', animation: 'clouds-anim' };
-      if (c.includes('wind')) return { emoji: '💨', animation: 'wind-anim' };
-      if (c.includes('clear') || c.includes('sunny')) return { emoji: '☀️', animation: 'sun-anim' };
-      return { emoji: '🌤️', animation: 'sun-anim' };
-    }
-
-    // Render Weather
-    function renderWeather(data) {
-      const icon = getWeatherIcon(data.condition);
-      
-      cityName.textContent = `${data.city}, ${data.country}`;
-      updateTime.textContent = `Last updated: ${new Date(data.updatedAt).toLocaleString()}`;
-      tempDisplay.textContent = data.temperature;
-      conditionText.textContent = data.condition;
-      
-      conditionIcon.textContent = icon.emoji;
-      conditionIcon.className = `condition-icon ${icon.animation}`;
-      
-      feelsLike.textContent = data.feelsLike;
-      humidity.textContent = data.humidity;
-      windSpeed.textContent = data.windSpeed;
-      pressure.textContent = data.pressure;
-      visibility.textContent = data.visibility;
-      
-      largeIcon.textContent = icon.emoji;
-      largeIcon.className = `large-icon ${icon.animation}`;
-
-      renderForecast(data.forecast);
-    }
-
-    function renderForecast(forecast) {
-      forecastCarousel.innerHTML = forecast.map((day, idx) => {
-        const dayIcon = getWeatherIcon(day.condition);
-        return `
-          <div class="forecast-card ${idx === 0 ? 'active' : ''}">
-            <div class="forecast-day">${day.day}</div>
-            <div class="forecast-icon">${dayIcon.emoji}</div>
-            <div class="forecast-temp">${day.temp}</div>
-            <div class="forecast-condition">${day.condition}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // Show Status Message
-    function showStatus(message, type = 'success') {
-      const msg = document.createElement('div');
-      msg.className = `status-message ${type}`;
-      msg.textContent = message;
-      statusContainer.innerHTML = '';
-      statusContainer.appendChild(msg);
-      setTimeout(() => msg.remove(), 4000);
-    }
-
-    // Search History
-    function addToHistory(city) {
-      if (!searchHistory.includes(city)) {
-        searchHistory.unshift(city);
-        if (searchHistory.length > 8) searchHistory.pop();
-        localStorage.setItem('weatherHistory', JSON.stringify(searchHistory));
-        renderHistory();
-      }
-    }
-
-    function renderHistory() {
-      historyContainer.innerHTML = searchHistory.map(city => 
-        `<div class="history-chip" onclick="fetchWeather('${city}')">${city}</div>`
-      ).join('');
-    }
-
-    // Fetch Weather
-    async function fetchWeather(city) {
-      if (!city || city.trim() === '') {
-        showStatus('Please enter a city name', 'error');
-        return;
-      }
-
-      searchBtn.disabled = true;
-      searchBtn.innerHTML = '<span class="loading-spinner"></span>';
-
-      try {
-        const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`, {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
+        // Settings
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+            settings.darkMode = !settings.darkMode;
+            applyTheme();
+            saveSettings();
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        document.getElementById('temp-unit').addEventListener('change', (e) => {
+            settings.unit = e.target.value;
+            saveSettings();
+            renderWeather(currentWeatherData);
+        });
 
-        const data = await response.json();
-        currentCity = data.city;
-        addToHistory(currentCity);
-        renderWeather(data);
-        showStatus(`Weather updated for ${data.city} ✓`, 'success');
-        searchInput.value = '';
-      } catch (error) {
-        console.error('Weather fetch error:', error);
-        showStatus('Failed to fetch weather. Check backend on port 3000.', 'error');
-      } finally {
-        searchBtn.disabled = false;
-        searchBtn.innerHTML = '🔍';
-      }
-    }
+        document.getElementById('notifications-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            settings.notifications = !settings.notifications;
+            saveSettings();
+        });
 
-    // Event Listeners
-    searchBtn.addEventListener('click', () => {
-      fetchWeather(searchInput.value.trim());
-    });
+        document.getElementById('default-city').addEventListener('change', (e) => {
+            settings.defaultCity = e.target.value;
+            saveSettings();
+        });
 
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') searchBtn.click();
-    });
+        // Initialize
+        function init() {
+            loadSettings();
+            loadHistory();
+            applyTheme();
+            fetchWeather(settings.defaultCity || 'Bangalore');
+            document.getElementById('default-city').value = settings.defaultCity;
+        }
 
-    refreshBtn.addEventListener('click', () => {
-      fetchWeather(currentCity);
-    });
+        // Fetch Weather
+        async function fetchWeather(city) {
+            try {
+                searchBtn.classList.add('loading');
+                searchBtn.disabled = true;
+                const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                currentWeatherData = data;
+                currentCity = data.city;
+                renderWeather(data);
+                addToHistory(data.city);
+                showStatus(`✓ Weather updated for ${data.city}`);
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`✗ Failed to fetch weather for ${city}`, true);
+            } finally {
+                searchBtn.classList.remove('loading');
+                searchBtn.disabled = false;
+            }
+        }
 
-    locationBtn.addEventListener('click', () => {
-      locationBtn.disabled = true;
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            fetchWeather('Bangalore');
-            showStatus('Using default location (demo mode)', 'success');
-            locationBtn.disabled = false;
-          },
-          () => {
-            fetchWeather('Bangalore');
-            showStatus('Using default location', 'success');
-            locationBtn.disabled = false;
-          }
-        );
-      }
-    });
+        // Search City
+        function searchCity() {
+            const city = searchInput.value.trim();
+            if (city) {
+                fetchWeather(city);
+                searchInput.value = '';
+            }
+        }
 
-    // Start
-    init();
-  </script>
+        // Render Weather
+        function renderWeather(data) {
+            document.getElementById('city-name').textContent = data.city;
+            document.getElementById('city-location').textContent = `${data.city}, ${data.country}`;
+            
+            const temp = settings.unit === 'fahrenheit' 
+                ? Math.round((parseInt(data.temperature) * 9/5) + 32) + '°F'
+                : data.temperature;
+            document.getElementById('temperature').textContent = temp;
+            document.getElementById('weather-condition').textContent = data.condition;
+            
+            const feelsLike = settings.unit === 'fahrenheit'
+                ? Math.round((parseInt(data.feelsLike) * 9/5) + 32) + '°F'
+                : data.feelsLike;
+            document.getElementById('feels-like').textContent = feelsLike;
+            
+            document.getElementById('humidity').textContent = data.humidity;
+            document.getElementById('wind-speed').textContent = data.windSpeed;
+            document.getElementById('pressure').textContent = data.pressure;
+            document.getElementById('visibility').textContent = data.visibility;
+            document.getElementById('updated-time').textContent = new Date(data.updatedAt).toLocaleTimeString();
+
+            // Update analytics
+            document.getElementById('analytics-humidity').textContent = data.humidity;
+            document.getElementById('analytics-wind').textContent = data.windSpeed;
+            document.getElementById('analytics-pressure').textContent = data.pressure;
+            document.getElementById('analytics-visibility').textContent = data.visibility;
+
+            // Weather icon with animation
+            const { icon, animation } = getWeatherIcon(data.condition);
+            document.getElementById('weather-icon').textContent = icon;
+            document.getElementById('weather-icon').className = `weather-icon-large ${animation}`;
+
+            // Render forecast
+            if (data.forecast) {
+                renderForecast(data.forecast);
+                renderHourly(data.forecast);
+                renderTempChart(data.forecast);
+            }
+        }
+
+        // Get Weather Icon
+        function getWeatherIcon(condition) {
+            const animations = {
+                'Sunny': { icon: '☀️', animation: 'sun-animation' },
+                'Rainy': { icon: '🌧️', animation: 'rain-animation' },
+                'Cloudy': { icon: '☁️', animation: 'cloud-animation' },
+                'Windy': { icon: '💨', animation: 'wind-animation' },
+                'Partly Cloudy': { icon: '⛅', animation: 'cloud-animation' }
+            };
+            return animations[condition] || { icon: '🌤️', animation: '' };
+        }
+
+        // Render Forecast
+        function renderForecast(forecast) {
+            const carousel = document.getElementById('forecast-carousel');
+            carousel.innerHTML = forecast.map((item, idx) => {
+                const { icon } = getWeatherIcon(item.condition);
+                return `
+                    <div class="forecast-card">
+                        <div class="forecast-day">${item.day}</div>
+                        <div class="forecast-icon">${icon}</div>
+                        <div class="forecast-temp">${item.temp}</div>
+                        <div class="forecast-condition">${item.condition}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Hourly
+        function renderHourly(forecast) {
+            const times = ['02:00', '05:00', '08:00', '11:00', '14:00', '17:00', '20:00', '23:00'];
+            const hourly = document.getElementById('hourly-container');
+            hourly.innerHTML = times.map((time, idx) => {
+                const item = forecast[idx % forecast.length];
+                const { icon } = getWeatherIcon(item.condition);
+                const temp = settings.unit === 'fahrenheit'
+                    ? Math.round((parseInt(item.temp) * 9/5) + 32) + '°F'
+                    : item.temp;
+                return `
+                    <div class="hourly-item">
+                        <div class="hourly-time">${time}</div>
+                        <div class="hourly-icon">${icon}</div>
+                        <div class="hourly-temp">${temp}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Temperature Chart
+        function renderTempChart(forecast) {
+            const tempBars = document.getElementById('temp-bars');
+            const maxTemp = 35;
+            tempBars.innerHTML = forecast.map(item => {
+                const temp = parseInt(item.temp);
+                const percent = (temp / maxTemp) * 100;
+                return `
+                    <div class="temp-bar-item">
+                        <div class="temp-bar-label">${item.day}</div>
+                        <div class="temp-bar">
+                            <div class="temp-bar-fill" style="width: ${percent}%"></div>
+                        </div>
+                        <div class="temp-bar-value">${item.temp}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // History Management
+        function addToHistory(city) {
+            if (!searchHistory.includes(city)) {
+                searchHistory.unshift(city);
+                if (searchHistory.length > 8) searchHistory.pop();
+                saveHistory();
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            const chips = document.getElementById('history-chips');
+            chips.innerHTML = searchHistory.map(city => 
+                `<div class="history-chip" onclick="fetchWeather('${city}')">${city}</div>`
+            ).join('');
+        }
+
+        function clearHistory() {
+            searchHistory = [];
+            saveHistory();
+            renderHistory();
+            showStatus('✓ Search history cleared');
+        }
+
+        // Settings Management
+        function saveSettings() {
+            localStorage.setItem('weatherSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('weatherSettings');
+            if (saved) settings = JSON.parse(saved);
+        }
+
+        function saveHistory() {
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem('searchHistory');
+            if (saved) searchHistory = JSON.parse(saved);
+            renderHistory();
+        }
+
+        // Theme
+        function toggleTheme() {
+            settings.darkMode = !settings.darkMode;
+            applyTheme();
+            saveSettings();
+        }
+
+        function applyTheme() {
+            const html = document.documentElement;
+            if (settings.darkMode) {
+                html.classList.add('dark-mode');
+                themeBtn.textContent = '☀️';
+                document.getElementById('dark-mode-toggle').classList.add('active');
+            } else {
+                html.classList.remove('dark-mode');
+                themeBtn.textContent = '🌙';
+                document.getElementById('dark-mode-toggle').classList.remove('active');
+            }
+        }
+
+        // Refresh Weather
+        function refreshWeather() {
+            fetchWeather(currentCity);
+        }
+
+        // Current Location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(() => {
+                    fetchWeather(settings.defaultCity || 'Bangalore');
+                    showStatus('✓ Using default location');
+                }, () => {
+                    showStatus('✗ Location access denied', true);
+                });
+            }
+        }
+
+        // Tab Switching
+        function switchTab(e) {
+            const button = e.target.closest('[data-tab]');
+            if (!button) return;
+            
+            const tabName = button.dataset.tab;
+            
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+            
+            button.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Show Status
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.style.color = isError ? '#ef4444' : '#10b981';
+            setTimeout(() => statusMessage.textContent = '', 3000);
+        }
+
+        // Initialize
+        init();
+    </script>
 </body>
 </html>
