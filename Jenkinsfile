@@ -35,6 +35,11 @@ pipeline {
         sh '''
           export KUBECONFIG=/var/lib/jenkins/.kube/config
           sleep 5
+          for i in 1 2 3 4 5; do
+            kubectl get nodes && break
+            echo "Waiting for cluster..."
+            sleep 5
+          done
           kubectl get nodes
           kubectl apply -f k8s/ --validate=false
         '''
