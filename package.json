@@ -1,0 +1,12 @@
+{
+  "name": "weather-devops-app",
+  "version": "1.0.0",
+  "description": "Simple Weather DevOps App for CI/CD, Docker, and Kubernetes demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
