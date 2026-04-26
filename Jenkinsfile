@@ -30,32 +30,24 @@ pipeline {
       }
     }
 
-    stage('Stop Old Container') {
-      steps {
-        sh 'docker stop weather-devops-container || true'
-        sh 'docker rm weather-devops-container || true'
-      }
-    }
-
-    stage('Ensure Minikube Running') {
-      steps {
-        sh 'minikube status || true'
-        sh 'minikube start --driver=docker || true'
-      }
-    }
-
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl get nodes'
-        sh 'kubectl cluster-info'
-        sh 'kubectl apply -f k8s/ --validate=false'
+        sh '''
+          export KUBECONFIG=/var/lib/jenkins/.kube/config
+          sleep 5
+          kubectl get nodes
+          kubectl apply -f k8s/ --validate=false
+        '''
       }
     }
 
     stage('Verify Deployment') {
       steps {
-        sh 'kubectl get pods'
-        sh 'kubectl get services'
+        sh '''
+          export KUBECONFIG=/var/lib/jenkins/.kube/config
+          kubectl get pods
+          kubectl get services
+        '''
       }
     }
   }
