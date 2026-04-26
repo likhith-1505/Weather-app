@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  environment {
+    KUBECONFIG = '/var/lib/jenkins/.kube/config'
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -33,9 +37,18 @@ pipeline {
       }
     }
 
+    stage('Ensure Minikube Running') {
+      steps {
+        sh 'minikube status || true'
+        sh 'minikube start --driver=docker || true'
+      }
+    }
+
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl apply -f k8s/'
+        sh 'kubectl get nodes'
+        sh 'kubectl cluster-info'
+        sh 'kubectl apply -f k8s/ --validate=false'
       }
     }
 
